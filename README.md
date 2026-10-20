@@ -9,7 +9,7 @@
 ## 它能做什么
 
 - **视频与图像修复**：超分辨率、细节增强，本地推理、数据不出机器
-- **零依赖开箱即用**：桌面安装版一键安装（含便携 Python、CUDA 版 torch 与 3B 模型），网页版/便携包解压即用
+- **零依赖开箱即用**：桌面完整包解压即用（含便携 Python、CUDA 版 torch 与 3B MXFP8 模型），网页版/便携包解压即用
 - **三档模型可选**：3B / 7B / 7B-Sharp，支持 FP16 / FP8 及 INT8-convrot / MXFP8 / NVFP4 量化变体
 - **显存友好**：GPU Block Swap 动态换入换出 Transformer 块，FP8 + BlockSwap 可在更低显存上跑大模型
 - **批量与断点**：单文件修复 / 文件夹批量扫描，批量任务支持断点续跑
@@ -26,13 +26,13 @@
 
 ## 桌面版（对外分发，推荐）
 
-对外正式分发方式为桌面版：Tauri v2 原生窗口 + NSIS 安装器，一键安装、像普通软件一样使用与卸载。
+对外正式分发方式为桌面版：Tauri v2 原生窗口 + 7z 分卷离线完整包，解压即用、无需安装程序。
 
-- **一键安装**：`SeedVR2-Setup-vX.Y.Z.exe` + 3 个数据分卷（`SeedVR2-Data.7z.001/.002/.003`），双击即用——已含全部依赖与 3B MXFP8 模型，开机即用、无需联网
+- **离线完整包**：[Releases v1.6.0](https://github.com/ReSerendipity/SeedVR2-Lite/releases/tag/v1.6.0) 的 `SeedVR2-Desktop-v1.6.0-win-x64.7z.001/.002/.003` 三个分卷 + `manifest.json` + `SHA256SUMS.txt` + `unpack_desktop.ps1` + `portable_bundle_lib.ps1`，下载后执行 `powershell -ExecutionPolicy Bypass -File .\unpack_desktop.ps1 -TargetDir D:\SeedVR2`，解压即用——已含全部依赖与 3B MXFP8 模型，无需联网
 - **原生体验**：独立窗口、系统托盘（显示/隐藏/检查更新/退出）、Windows Toast 通知、文件拖拽、窗口状态记忆
-- **增量更新**：托盘「检查更新」自动下载应用代码更新包（约 1.3MB）→ 校验 → 原子换载 → 重启，失败自动回滚
+- **增量更新**：托盘「检查更新」自动下载应用代码更新包（约 1.4 MB）→ 校验 → 原子换载 → 重启，失败自动回滚
 - **单实例与崩溃恢复**：重复启动自动聚焦已有窗口；Python 后端意外退出自动重启
-- **卸载干净**：安装/卸载自动终止运行中的程序，卸载清理注册表与快捷方式
+- **免安装**：解压目录可整体拷贝/移动，无安装卸载程序、无注册表遗留
 
 > 桌面版与网页版共享同一套 Python 后端与模型。当前稳定版 **v1.6.1**（[Releases](https://github.com/ReSerendipity/SeedVR2-Lite/releases/latest)）。
 >
@@ -40,8 +40,8 @@
 >
 > | 你要什么 | 去哪儿拿 |
 > |---|---|
-> | 首次安装桌面版（安装器 + 3 个数据分卷，约 5.3 GB） | [v1.5.4](https://github.com/ReSerendipity/SeedVR2-Lite/releases/tag/v1.5.4)：`SeedVR2-Setup-v1.5.4.exe` + `SeedVR2-Data.7z.001/.002/.003` + `SHA256SUMS-v1.5.4.txt` |
-> | 已装用户走托盘「检查更新」（约 1.4 MB） | [`/releases/latest`](https://github.com/ReSerendipity/SeedVR2-Lite/releases/latest)：`app-v1.5.7.zip`（+ `.sha256`） |
+> | 首次安装桌面版（完整包 3 个分卷，约 4.8 GB） | [v1.6.0](https://github.com/ReSerendipity/SeedVR2-Lite/releases/tag/v1.6.0)：`SeedVR2-Desktop-v1.6.0-win-x64.7z.001/.002/.003` + `manifest.json` + `SHA256SUMS.txt(.gpg)` + `unpack_desktop.ps1` + `portable_bundle_lib.ps1` |
+> | 已装用户走托盘「检查更新」（约 1.4 MB） | [`/releases/latest`](https://github.com/ReSerendipity/SeedVR2-Lite/releases/latest)：`app-v1.6.1.zip`（+ `.sha256`） |
 > | 便携分卷包（`core` / `torch` / `model-*`，约 5.6 GB） | [v1.5.6](https://github.com/ReSerendipity/SeedVR2-Lite/releases/tag/v1.5.6)：5 个分卷 + `manifest.json` + `SHA256SUMS.txt(.gpg)` + 两个解包脚本。代码等同 v1.5.7，**不含**其后合入主干的修复（见下节说明） |
 
 ## 网页版 / 便携包（开发与内部使用）
@@ -160,7 +160,7 @@ SeedVR2/
 
 ## 安全与合规
 
-**网络绑定警告**：Web UI 默认仅绑定 `127.0.0.1`（`config.yaml` 的 `server.host`）。**严禁改为 `0.0.0.0` 或公网 IP**——本应用不含用户认证与权限隔离，直接暴露将导致任意调用推理 API 占用 GPU、上传恶意文件、下载 outputs/ 与 uploads/ 内容。如需局域网共享，请在反向代理后增加 Basic Auth 并启用 HTTPS。
+**网络绑定警告**：Web UI 默认仅绑定 `127.0.0.1`（`config.yaml` 的 `server.host`），且默认未启用用户认证。**严禁改为 `0.0.0.0` 或公网 IP**——默认配置下直接暴露，将导致任意调用推理 API 占用 GPU、上传恶意文件、下载 outputs/ 与 uploads/ 内容。应用自带 Basic Auth（可按需开启）与请求限流（默认 30 次/分钟）；如需局域网共享，请开启 Basic Auth 并在反向代理后启用 HTTPS。
 
 **合规说明**：使用前请阅读 [USER_AGREEMENT.md](docs/USER_AGREEMENT.md)。模型权重（SeedVR/SeedVR2）为 Apache-2.0；FFmpeg 为本地开发依赖，不随仓库分发（见 [NOTICE](NOTICE)）。对外分发物随附组件的许可与归属清单见 [NOTICE](NOTICE)；输出**画面内无可见标识、文件名沿用输入名**，内容标识走文件元数据与不可感知水印两层（实现与边界见 `docs/AI应用分发安全加固指南.md`）。
 
