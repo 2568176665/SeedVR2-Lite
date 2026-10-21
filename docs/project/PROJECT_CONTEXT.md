@@ -23,15 +23,15 @@ SeedVR2 是一个脱离 ComfyUI 独立运行的视频/图像修复工具箱，�
 
 ```text
 start.bat
-  -> bin/clean_launch.py
-  -> bin/integrated_app/app_server.py
+  -> app/clean_launch.py
+  -> app/integrated_app/app_server.py
 ```
 
 ### 2.2 默认运行参数
 
 - 默认地址：`127.0.0.1`
 - 默认端口：`7870`
-- 默认运行时假设：优先使用项目内 WinPython，避免与系统 Python 混用
+- 默认运行时假设：推荐系统 Python 3.12+；WinPython 3.12 解压到项目根 `WPy64-312101/` 为可选便携运行时（`scripts\setup_winpython.py` 可自动配置）
 
 ### 2.3 启动阶段典型流程
 
@@ -63,7 +63,7 @@ start.bat
 
 ### 3.3 当前路由实现要点
 
-- 图像修复与视频修复已统一到 `bin/integrated_app/routes/restore/unified.py`
+- 图像修复与视频修复已统一到 `app/integrated_app/routes/restore/unified.py`
 - 页面模板当前以 `restore.html` 为统一修复页
 - 不应再假设存在 `image_restore.html`、`video_restore.html` 或 `/image-restore`、`/video-restore`
 
@@ -73,64 +73,64 @@ start.bat
 
 ### 4.1 应用层
 
-- `bin/integrated_app/app_server.py`
+- `app/integrated_app/app_server.py`
   - 创建应用
   - 注册中间件、路由、模板环境
   - 管理启动与关闭生命周期
 
-- `bin/integrated_app/dependencies.py`
+- `app/integrated_app/dependencies.py`
   - 提供基于 `app.state` 的依赖注入
 
 ### 4.2 推理与模型
 
-- `bin/integrated_app/engines/seedvr2_engine.py`
+- `app/integrated_app/engines/seedvr2_engine.py`
   - 核心推理逻辑
   - 分阶段模型处理与显存/内存控制
 
-- `bin/integrated_app/model_manager.py`
+- `app/integrated_app/model_manager.py`
   - 负责模型加载、卸载、切换与相关校验
 
-- `bin/integrated_app/model_registry.py`
+- `app/integrated_app/model_registry.py`
   - 保存当前模型状态
   - 为其他模块提供当前模型信息
 
-- `bin/integrated_app/gpu_backend.py`
+- `app/integrated_app/gpu_backend.py`
   - GPU 后端抽象
   - 修改前必须以当前实现为准，不要根据旧文档假设支持矩阵
 
 ### 4.3 任务与状态
 
-- `bin/integrated_app/task_queue.py`
+- `app/integrated_app/task_queue.py`
   - 单 worker 串行执行任务，避免并发推理导致 OOM
 
-- `bin/integrated_app/history_db.py`
+- `app/integrated_app/history_db.py`
   - 持久化历史记录、任务状态与恢复信息
 
-- `bin/integrated_app/progress.py`
+- `app/integrated_app/progress.py`
   - 进度追踪相关能力
 
 ### 4.4 系统与界面
 
-- `bin/integrated_app/routes/system/`
+- `app/integrated_app/routes/system/`
   - 系统健康、GPU、设置、历史、SSE 等接口
 
-- `bin/integrated_app/templates/`
+- `app/integrated_app/templates/`
   - Jinja2 页面模板
 
-- `bin/integrated_app/static/`
+- `app/integrated_app/static/`
   - CSS、JavaScript 和前端静态资源
 
 ---
 
 ## 5. 当前实现中的稳定约束
 
-这些约束来自当前代码与 `docs/CONSTRAINTS.md`，属于高频注意事项：
+这些约束来自当前代码与 `docs/project/CONSTRAINTS.md`，属于高频注意事项：
 
 - 应用必须独立运行，不依赖 ComfyUI 运行时
-- WebUI 设置应与工作流参数一一对应
-- 默认参数应尽量与工作流默认值一致
+- WebUI 设置应与 `config.yaml` 配置一一对应
+- 默认参数应尽量与 `config.yaml` 默认值一致
 - 模型加载前要做内存预检，可用内存至少为模型大小的 1.5 倍
-- 内存使用超过 90% 时应立即终止相关推理
+- 内存使用超过 95%（`memory_threshold`）时应立即终止相关推理
 - I/O 组件不应被卸载到 CPU RAM
 - Windows 批处理脚本应避免中文，尽量保持 ASCII 英文
 

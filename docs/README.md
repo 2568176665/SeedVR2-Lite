@@ -16,7 +16,7 @@
 | `common/` `model_lib/` | 核心算法/模型源码库 |
 | `tests/` | pytest + Playwright(ts) + `tests/perf` |
 | `docs/` + `website/` | 项目文档（见下方说明） |
-| `launcher/` | Windows 桌面安装器（release-notes-intro.md 被 CI 读取） |
+| `launcher/` | 便携启动器（release-notes-portable.md 被 portable-release.yml 读取） |
 | `model/` | 权重；`configs_3b/` `configs_7b/` 模型配置 |
 | `training/` | 训练脚本 |
 | `data/` `outputs/` `logs/` `screenshots/` | 运行/产物 |

@@ -58,7 +58,7 @@ NaDiT (Native Resolution Diffusion Transformer) 是支持原生分辨率/变长�
 
 | 组件 | 显存占用 | 备注 |
 |---|---|---|
-| 模型权重 (7B) | ~14GB (fp16) | 36 层 × (QKV + MLP + AdaLN) |
+| 模型权重 (7B) | ~15.35GB (fp16) | 36 层 × (QKV + MLP + AdaLN) |
 | 注意力激活值 | O(N² × h) → O(N × d) | Flash Attention 优化后 |
 | MLP 激活值 | O(N × d_ff) | d_ff = 4d (normal) 或 ~5.3d (swiglu) |
 | RoPE 频率缓存 | O(max_T × d/4 + max_H × d/4 + max_W × d/2) | 常驻 buffer |
@@ -163,8 +163,8 @@ Causal Video VAE 是基于 3D 因果卷积的视频变分自编码器，架构�
   - 每层 3D 卷积 + GroupNorm + SiLU
 - **空间复杂度**: O(B × C × T × H × W) — 解码后全分辨率视频
   - 空间分块推理可降低峰值到 O(B × C × tile_H × tile_W × T)
-- **优化候选**: Tiled VAE 已实现（余弦窗渐变融合），GroupNorm 累积器优化已集成
-- **风险**: 分块边界处可能出现伪影，GroupNorm 累积器精度问题
+- **优化候选**: Tiled VAE 已实现（余弦窗渐变融合）；~~GroupNorm 累积器优化已集成~~ → **2026-09-10 查证：GroupNormAccumulator / TiledVAEHook 均未接线（空转，`_var_lists` 恒为空、Gaussian 混合分支永不执行），已从 `_vae_pipeline` 移除死路径并改日志措辞，见 `docs/VAE_STALL_DIAGNOSIS_20260910.md` §三/§四**
+- **风险**: 分块边界处可能出现伪影（2026-09-10 查证：GroupNorm 累积器精度问题一项不成立——该类从未接线，见 `docs/VAE_STALL_DIAGNOSIS_20260910.md`）
 
 #### `ResnetBlock3D.forward()`
 - **时间复杂度**: O(B × C × T × H × W × k³) — 3D 卷积主导, k=3 (核大小)
@@ -179,7 +179,7 @@ Causal Video VAE 是基于 3D 因果卷积的视频变分自编码器，架构�
 
 | 组件 | 显存占用 | 备注 |
 |---|---|---|
-| VAE 权重 | ~200MB (fp16) | 相比 DiT 很小 |
+| VAE 权重 | ~478MB (fp16) | 相比 DiT 很小 |
 | 编码激活值 | O(B × C × T × H × W) | 最高峰值在第一层下采样前 |
 | 解码激活值 | O(B × C × T × H × W) | 全分辨率，分块后降为 O(tile_size²) |
 | 时序记忆卸载 | CPU RAM | 跨切片缓存上下文 |
@@ -190,7 +190,7 @@ Causal Video VAE 是基于 3D 因果卷积的视频变分自编码器，架构�
 2. **`torch.compile`**: 可对 3D 卷积和 pixel shuffle 进行编译优化
 3. **半精度数值稳定性**: VAE 解码在 fp16 下可能出现 NaN，已有 NaN 检测和回退机制
 4. **空间分块优化**: 当前余弦窗渐变融合可进一步优化重叠区域大小
-5. **GroupNorm 累积器**: 已实现 GroupNormAccumulator 减少分块间不一致
+5. **GroupNorm 累积器**: ~~已实现 GroupNormAccumulator 减少分块间不一致~~ → **未接线（2026-09-10 查证，空转；要真正启用须在 `model_lib` 侧加回调）**
 6. **内存限制卷积**: 已实现递归分片，可优化分片大小自适应
 
 ---

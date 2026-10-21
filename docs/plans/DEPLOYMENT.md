@@ -62,18 +62,14 @@ nvidia-smi  # 确认 GPU 可见且驱动正常
 
 ```bash
 # 克隆仓库
-git clone https://github.com/ReSerendipity/SeedVR2-Toolkit.git
-cd SeedVR2
+git clone https://github.com/ReSerendipity/SeedVR2-Lite.git
+cd SeedVR2-Lite
 
-# 方式一：使用安装脚本（推荐）
-chmod +x install.sh start.sh
-./install.sh
-
-# 方式二：手动安装
+# 安装（本仓无 Linux/macOS 一键脚本，install.bat/start.bat 仅 Windows；以下走 venv 手动安装）
 python3.12 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 pip install -r requirements.txt
 ```
 
@@ -94,14 +90,12 @@ cp /path/to/neg_emb.pt model/
 
 ```bash
 # 启动应用
-./start.sh
-# 或手动启动
 source .venv/bin/activate
-python bin/clean_launch.py
+python app/clean_launch.py
 
 # 验证服务
 curl http://127.0.0.1:7870/api/system/ping
-# 期望返回: {"status":"ok","version":"1.0.0","gpu_available":true}
+# 期望返回: {"status":"ok","version":"<当前版本，由 version.py 动态读取 pyproject.toml>","gpu_available":true}
 
 # 运行引擎自检（可选）
 python scripts/verify_engine.py
@@ -117,7 +111,7 @@ python scripts/verify_engine.py
 sudo tee /etc/systemd/system/seedvr2.service << 'EOF'
 [Unit]
 Description=SeedVR2 Video & Image Super-Resolution Toolkit
-Documentation=https://github.com/ReSerendipity/SeedVR2-Toolkit
+Documentation=https://github.com/ReSerendipity/SeedVR2-Lite
 After=network.target
 
 [Service]
@@ -131,7 +125,7 @@ Environment="HF_HUB_OFFLINE=1"
 Environment="TRANSFORMERS_OFFLINE=1"
 # 如需 Basic Auth，取消下行注释并设置密码
 # Environment="SEEDVR2_AUTH_PASSWORD=your_secure_password"
-ExecStart=/opt/seedvr2/.venv/bin/python /opt/seedvr2/bin/clean_launch.py
+ExecStart=/opt/seedvr2/.venv/bin/python /opt/seedvr2/app/clean_launch.py
 Restart=on-failure
 RestartSec=10
 StandardOutput=journal
@@ -302,10 +296,13 @@ sudo certbot renew --dry-run
 
 ## 五、Docker 部署
 
+> 仓库根已自带 `docker-compose.yml`（单机 GPU 双件套：named volumes + 权重下载 one-off，默认只绑 127.0.0.1），
+> 可直接 `docker compose up -d --build`；以下为等价手工命令。
+
 ### 5.1 构建镜像
 
 ```bash
-docker build -t seedvr2-toolkit:latest .
+docker build -t seedvr2 .
 ```
 
 ### 5.2 运行容器
@@ -317,7 +314,7 @@ docker run --gpus all -p 7870:7870 \
     -v $(pwd)/outputs:/app/outputs \
     -v $(pwd)/data:/app/data \
     --name seedvr2 \
-    seedvr2:latest
+    seedvr2
 
 # 带环境变量运行
 docker run --gpus all -p 7870:7870 \
@@ -328,7 +325,7 @@ docker run --gpus all -p 7870:7870 \
     -e KMP_DUPLICATE_LIB_OK=TRUE \
     --name seedvr2 \
     --restart unless-stopped \
-    seedvr2:latest
+    seedvr2
 ```
 
 ### 5.3 Docker Compose
@@ -339,7 +336,7 @@ version: '3.8'
 services:
   seedvr2:
     build: .
-    image: seedvr2:latest
+    image: seedvr2:local
     container_name: seedvr2
     ports:
       - "127.0.0.1:7870:7870"  # 仅绑定本地
@@ -519,11 +516,11 @@ curl -X DELETE "http://127.0.0.1:7870/api/system/history?status=failed"
 ```yaml
 # config.yaml 推荐配置（8GB 显存 / 3B 模型）
 inference:
-  fp8_enabled: true           # 启用 FP8 量化
+  fp8_enabled: true           # 启用 FP8（权重存储格式；推理仍按 FP16/FP32 加载）
   blocks_to_swap: 16          # BlockSwap 交换块数
-  vae_tile_size: 512          # VAE 分块大小
-  vae_overlap: 128            # VAE 重叠区域
   temporal_segment_size: 5    # 视频时间分段
+user_preferences:
+  vae_tile_size: 512          # VAE 分块大小（该键在 user_preferences 段，不在 inference 段）
 ```
 
 ### 9.2 磁盘 I/O 优化
@@ -540,4 +537,4 @@ inference:
 
 ---
 
-*文档更新时间：2026-08-10*
+*文档更新时间：2026-10-21（修正仓库名/入口路径/CUDA 版本/Docker 镜像名/配置键位，对齐 README 与代码现状）*

@@ -2,7 +2,8 @@
 
 > **来源**：家族通用 DOD 模板（源自 SpiritPal definition-of-done.md 泛化的家族模板，原 `.spec_audit/family_DOD.md` 已随家族归档，本文为本仓本地化副本）。
 > **适用范围**：SeedVR2-lite 全项目所有功能开发任务。
-> **本地未分发引用**：`AGENTS.md`、`docs/project/`、`docs/agents/`、`precheck.ps1` 属维护者本地治理层，未随仓库分发；
+> **本地未分发引用**：`AGENTS.md`、`docs/agents/`、`precheck.ps1` 属维护者本地治理层，未随仓库分发
+> （`docs/project/` 自 2026-10-20 起已有 6 个文件随仓库分发，其余仍未跟踪）；
 > 其对外可执行部分（禁区与门禁口径）已摘入 `docs/CODING_STANDARDS.md` 第 5 节，克隆后以该节为准。
 
 ---
@@ -37,7 +38,7 @@
 ## 3. 文档同步
 
 - [ ] 治理文档已同步（目录结构 / 模块图 / 配置 / 引擎契约）：对外可见部分写入 `docs/CODING_STANDARDS.md` §5 与本文；`AGENTS.md` 侧同步由维护者本地完成
-- [ ] 新增模块在模块图 `docs/project/MODULE_MAP.md` 有对应条目（维护者本地账本）
+- [ ] 新增模块在模块图 `docs/project/MODULE_MAP.md` 有对应条目（该文件已随仓库分发）
 - [ ] 踩坑已追加到 `docs/project/KNOWN_ISSUES.md`（触发/现象/做法/日期；同为本地账本，外部贡献者请在 PR 中描述）
 - [ ] `CHANGELOG.md` 已记录变更（type 对应 Added/Fixed/…）
 - [ ] `python scripts/check_spec_refs.py` 退出码 0（无幻影/死链/假门禁）

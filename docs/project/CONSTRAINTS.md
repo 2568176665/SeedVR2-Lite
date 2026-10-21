@@ -3,20 +3,20 @@
 ## Hard Constraints
 - Application must run independently without ComfyUI environment
 - **SeedVR2 model only supports NVIDIA CUDA GPU. CPU inference is NOT supported.**
-- Development environment must use WinPython as the base runtime
+- Development environment uses system Python 3.12+ (recommended) or a self-extracted WinPython 3.12 at the project root (`WPy64-312101/`, auto-configured via `scripts\setup_winpython.py`) — WinPython is an optional portable runtime, not mandatory
 - All batch files must use pure ASCII English to avoid encoding issues in Windows cmd.exe
 - Model loading must strictly follow workflow parameters to prevent memory overflow
-- If memory exceeds 90%, immediately terminate the model
+- If memory exceeds 95% (`memory_threshold`, hard limit `_MEMORY_THRESHOLD`), immediately terminate the model (the 90% ratio in `gpu_utils` is only the safety line for parameter recommendation, not a termination threshold)
 - I/O components (embeddings, norms, etc.) must remain on GPU and not be offloaded to CPU RAM
-- WebUI settings must exactly match workflow parameters, with each settings section corresponding to a ComfyUI node
-- Default parameters (model, resolution, tile size, etc.) in WebUI must match workflow defaults
+- WebUI settings must exactly match the runtime configuration, with each settings section corresponding to a `config.yaml` field (the app runs standalone without ComfyUI; `config.yaml` is the single source of truth)
+- Default parameters (model, resolution, tile size, etc.) in WebUI must match `config.yaml` defaults
 - Default resolution follows config.yaml as the single source of truth (currently restore.default_resolution_h=1080, default_resolution_w=1920, resolution=2048); do not hardcode a fixed value in docs
 - Folder scanning must pass the security/path_guard.py whitelist check; arbitrary directory traversal is forbidden
 - All API responses must converge to the unified {success, data, error} structure
 
 ## Engineering Conventions
 - 3B model uses model_lib.dit_v2.nadit architecture with num_layers=32, vid_dim=2560, mlp_type=swiglu
-- 7B model uses model_lib.dit.nadit architecture with num_layers=36, vid_dim=3072, mlp_type=normal
+- 7B model uses model_lib.dit.nadit architecture with num_layers=36, vid_dim=3072, mlp_type=normal (current status: the vendored model_lib/dit v1 tree is mid-migration — importing it fails, so the 7B path is unavailable for now; see the exemption table in AGENTS.md §3 — maintainer-local file, not shipped with the repo. The 3B path via model_lib/dit_v2 is unaffected)
 - window_method list in config must be automatically expanded to match num_layers length
 - Web server uses native jinja2.Environment for template rendering instead of Starlette's Jinja2Templates
 - Model loading must include memory pre-check: available memory >= 1.5 times model size

@@ -55,7 +55,7 @@ model/                                 # 15.35GB 级权重，元数据仅存 con
 - 明确"单连接串行写"契约（:345 注释），多进程并发依赖 WAL 兜底
 
 **缺陷**：
-- ✅ ~~无 schema version~~（数据治理 P0-2 已落地，本行按 2026-09-21 复核改写）：`app/integrated_app/history_db.py` 有 `SCHEMA_VERSION = 4` 与 `_MIGRATIONS` 版本化迁移链（v0→v1 补 `output_size_bytes`/`vram_peak_mb`，v1→v2 补 `input_sha256`，v2→v3 补 `pinned`，v3→v4 补 `deleted_at`），`PRAGMA user_version` 由 `_get_schema_version` 读、在全部迁移完成后于 `initialize()` 统一落盘；库版本高于代码版本时告警并跳过（防程序回滚把新库改坏）。原描述里的"隐式迁移"已不成立。
+- ✅ ~~无 schema version~~（数据治理 P0-2 已落地，本行按 2026-09-21 复核改写）：`app/integrated_app/history_db.py` 有 `SCHEMA_VERSION = 5` 与 `_MIGRATIONS` 版本化迁移链（v0→v1 补 `output_size_bytes`/`vram_peak_mb`，v1→v2 补 `input_sha256`，v2→v3 补 `pinned`，v3→v4 补 `deleted_at`，v4→v5 补输入分布列 `input_width`/`input_height`/`input_duration_sec`，2026-10-20 随 #166 合入），`PRAGMA user_version` 由 `_get_schema_version` 读、在全部迁移完成后于 `initialize()` 统一落盘；库版本高于代码版本时告警并跳过（防程序回滚把新库改坏）。原描述里的"隐式迁移"已不成立。
 - ✅ 迁移失败不再静默跳过：迁移函数抛错会直接冒出 `initialize()`，而 `user_version` 在其之后才写，所以失败即版本不推进、下次启动重跑该步；P2-4 另加升级前自动备份 `_backup_before_migration`（空库/同版本不备份，仅**备份自身**失败不阻断主流程）。**仍缺的是自动回滚**——备份文件得人工恢复。
 
 ### 1.2 配置即 Schema（Pydantic 治理）—— **已实现（90 分）**
@@ -86,7 +86,7 @@ model/                                 # 15.35GB 级权重，元数据仅存 con
 | 项 | 状态 | 得分 |
 |---|---|:--:|
 | History schema + FTS + 索引 | 已实现 | 85 |
-| Schema 版本化迁移 | 未实现 | 10 |
+| Schema 版本化迁移 | 已实现 | 85 |
 | Pydantic 配置治理 | 已实现（1 处漂移） | 90 |
 | 权重完整性校验（CWE-353） | 已实现 | 90 |
 | 权重版本/谱系 metadata | 未实现 | 10 |
@@ -189,7 +189,7 @@ model/                                 # 15.35GB 级权重，元数据仅存 con
 ### 5.2 用户数据桌面迁移
 
 - History DB 路径走 config（`db_path: data/history.db`），`conftest.py:70` 测试隔离已验证可重定位
-- 但**无版本化迁移框架**（§1.1）→ 桌面版升级时旧 db 结构变更风险高；无导出/导入 API
+- 版本化迁移框架已具备（§1.1，SCHEMA_VERSION=5 + _MIGRATIONS）；仍无导出/导入 API
 
 ---
 
@@ -244,7 +244,7 @@ model/                                 # 15.35GB 级权重，元数据仅存 con
 心跳文件原子写（`distributed_trainer.py:486-518`）、AMP scaler 状态保存（防续训 loss scale 从头摸索）、断点续训齐备；但 dataset versioning 为零、DDCP/故障节点检测未见、多卡数据一致性（seed/shuffle 状态）未入 checkpoint。
 
 ### 8.4 Desktop App 数据迁移 —— ❌ 未准备
-无 db schema version（升级即风险）、无历史库导出/导入、`app/integrated_app/data/` 与根 `data/` 双目录并存（cwd 相关路径解析副产物，已实际出现）、config 无版本迁移机制（`extra="ignore"` 只保证向后兼容，不保证语义迁移）。
+无 db schema version（升级即风险）→ **已具备**（§1.1，SCHEMA_VERSION=5 + _MIGRATIONS，2026-09-21 复核）；仍无历史库导出/导入；`app/integrated_app/data/` 与根 `data/` 双目录并存问题已消失（该子目录现已不存在）；config 无版本迁移机制（`extra="ignore"` 只保证向后兼容，不保证语义迁移）。
 
 ### 8.5 权衡分析
 
@@ -264,7 +264,7 @@ model/                                 # 15.35GB 级权重，元数据仅存 con
 
 | 子体系 | 得分 | 一句话结论 |
 |---|:--:|---|
-| 1. 数据模型与 Schema | **55** | 运行时库优秀；版本化迁移与训练侧 versioning 双缺失 |
+| 1. 数据模型与 Schema | **55** | 运行时库优秀；版本化迁移已落地（2026-09-21 复核，见 §1.1），训练侧 versioning 仍缺失 |
 | 2. 数据质量管理 | **50** | 输入防线完整；输出质量零度量（视觉修复项目的核心空洞） |
 | 3. 所有权与血缘 | **40** | 弱血缘（路径+参数+水印）；无内容寻址；训练血缘为零 |
 | 4. 测试数据管理 | **30** | 占位资产；退化生成器有现成代码却未接入测试 |
@@ -276,7 +276,7 @@ model/                                 # 15.35GB 级权重，元数据仅存 con
 | 优先级 | 事项 | 成本 | 理由 |
 |:--:|---|---|---|
 | **P0** | 补齐 `upload.py:198-201` 声称的 `max_upload_image_mb/video_mb` 配置字段（模型+yaml） | 30 分钟 | 已知配置漂移，承诺未兑现 |
-| **P0** | history_db 加 `PRAGMA user_version` + 最小迁移框架 | 半天 | 桌面版升级的前置保险，越晚成本越高 |
+| **P0** | history_db 加 `PRAGMA user_version` + 最小迁移框架（**已实施**，2026-09-21 复核：SCHEMA_VERSION=5 + _MIGRATIONS，见 §1.1） | 半天 | 桌面版升级的前置保险，越晚成本越高 |
 | **P0** | OOM 降级事件写入历史 `parameters` | 1 小时 | 一行级改动，血缘可解释性质变 |
 | **P1** | HistoryRecord 增加源文件 sha256 列 | 半天 | 弱血缘 → 内容寻址血缘 |
 | **P1** | folder/batch 入口复用魔数校验 | 2 小时 | 堵住旁路校验缺口 |

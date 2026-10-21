@@ -3,12 +3,12 @@
 > 本文由 2026-08-27 家族治理 E3 从 `AGENTS.md`（维护者本地文件，未随仓库分发）移出，内容逐字保留。
 
 ### 3.1 目录结构 & 职责
-> 结构以 2026-09-17 复核的实际物理布局为准；历史文档中的 `api/`、`core/`、`db/` 顶层目录均为早期目标结构，实际已收敛到 `app/integrated_app/` 单包体系。
+> 结构以 2026-10-21 复核的实际物理布局为准；历史文档中的 `api/`、`core/`、`db/` 顶层目录均为早期目标结构，实际已收敛到 `app/integrated_app/` 单包体系。
 ```
 SeedVR2-lite/
 ├── app/                  ← 主应用包（FastAPI + 集成层，实际全部业务代码所在）
 │   └── integrated_app/
-│       ├── api/          ← FastAPI 组装层（api_utils.py / app_server.py 等；路由在 routes/）
+│       ├── app_server.py  ← FastAPI 组装入口（create_app / lifespan；无 api/ 子目录，路由在 routes/）
 │       ├── config.py / config_models.py  ← Pydantic 配置模型（读根级 config.yaml，单例）
 │       ├── engine_interface.py           ← RestoreEngine / BatchRestoreEngine / EngineRegistry 三个 Protocol
 │       ├── model_manager.py              ← 显式构造 SeedVR2Engine（不扫描、不注册）
@@ -16,30 +16,27 @@ SeedVR2-lite/
 │       ├── engines/        ← 模型引擎层（seedvr2_engine.py + _memory_utils/_vae_pipeline/_dit_pipeline/_video_pipeline/_image_pipeline mixin）
 │       ├── lifecycle/      ← lifespan 周期后台循环（卡死清理/停滞看门狗/模型空闲卸载）
 │       ├── routes/         ← 路由（auto_discover_routes 自动注册；子包 restore/system/ui；模块含 router 变量即注册）
-│       ├── security/       ← 安全模块（path_guard.py / csrf.py / integrity.py / watermark.py）
+│       ├── security/       ← 安全模块（path_guard.py / integrity_check.py / integrity_selfcheck.py / watermark.py / secret_key.py）
 │       ├── services/       ← 业务服务（SceneGenerateService / HistoryService 等）
 │       ├── middleware/     ← 中间件（CSRF/SSE 校验等）
 │       ├── utils/          ← 通用工具
-│       ├── locales/        ← i18n 文案（zh / zh-TW / en / ja / fr 等 yaml）
+│       ├── locales/        ← i18n 文案（zh / zh-TW / en / ja / fr，JSON 词表，见 docs/adr/0001）
 │       ├── static/         ← 前端静态资源（css/ js/；design-system.md 同目录）
-│       ├── templates/      ← Jinja2 模板（base.html 维护 ?v= 版本号）
-│       └── data/           ← 运行时数据
-├── model_lib/           ← 第三方模型权重 & 代码（🚫 禁区：AI 不允许自动修改）
-│   ├── diffusion/
-│   └── llm/
+│       └── templates/      ← Jinja2 模板（base.html 维护 ?v= 版本号）
+├── model_lib/           ← vendored 上游模型实现代码（🚫 禁区：AI 不允许自动修改；权重在 model/）
+│   ├── dit/  dit_v2/  video_vae_v3/  common/
 ├── configs_3b/          ← SeedVR2-3B 的模型架构配置（随第三方权重，属禁区）
 ├── configs_7b/          ← SeedVR2-7B 的模型架构配置（随第三方权重，属禁区）
 ├── config.yaml          ← 全局配置（**仓库根级、唯一、且已提交 Git**；本仓无 `configs/` 目录，也没有 config.example.yaml 模板）
 ├── data/                ← 数据目录
 ├── tests/               ← 测试（第 4 节详细说明）
 ├── scripts/             ← 辅助脚本（模型下载 / 完整性校验 / DB 迁移 / 备份 / setup_winpython.py）
-├── install.bat / start.bat   ← Windows 一键脚本
-├── install.sh  / start.sh    ← Linux/macOS 一键脚本
+├── install.bat / start.bat   ← Windows 一键脚本（Linux/macOS 无一键脚本，走 venv 手动安装）
 ├── requirements.txt          ← 生产依赖
 ├── requirements-dev.txt      ← 开发依赖（pytest + ruff + mypy + coverage）
 ├── requirements-lock.txt     ← 锁定依赖版本（generate_lock.py 生成）
 ├── requirements-container-lock.txt ← 容器锁定依赖
-└── pyproject.toml            ← 项目元数据 + 工具配置（版本权威位 1.5.8）
+└── pyproject.toml            ← 项目元数据 + 工具配置（版本权威位 1.6.1）
 ```
 
 ### 3.2 禁区目录（禁止 AI 自动修改，必须人工确认）

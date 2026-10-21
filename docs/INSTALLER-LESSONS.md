@@ -1,5 +1,10 @@
 # docs/INSTALLER-LESSONS.md — Inno Setup & CI 编译经验教训（v1.4.8 分卷打包）
 
+> ⚠️ **现状注记（2026-10-21）**：本文记录的 Inno Setup 安装器（`launcher/installer_*.iss`）已被
+> Tauri v2 桌面壳 + 7z 分卷完整包方案取代（解压即用、无安装程序），相关 `.iss` 脚本已不在仓库内；
+> 现行对外分发形态见根 `README.md`「桌面版」一节与 `docs/adr/0003-tauri-desktop-shell-migration.md`。
+> 本文作为历史经验教训保留，Inno Setup 条目仅对维护旧安装器有参考价值。
+
 ## A. 背景与目标
 
 **目标**：在 GitHub Release 单文件 2GB 限制下，提供完整离线安装包（不含模型），用户下载后无需联网即可安装全部依赖。

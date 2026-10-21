@@ -56,7 +56,7 @@
 - 镜像发布前须经 Trivy `CRITICAL,HIGH`（`ignore-unfixed`）**阻断**；豁免逐条登记在 `.trivyignore.yaml`（理由 + expiration）。
   **本仓现状（2026-10-18）**：已转阻断——`docker-publish.yml` 的 `exit-code: 0 → 1`。2026-10-14 实测该镜像在门禁口径下零发现（无 CVE 行、无 Total 行），故当前无豁免条目；日后出现有修复版的 CRITICAL/HIGH 时门禁自动变红。
 - **不使用 GPG 分离签名**（2026-10-18 裁决，§10.1 / §10.3）。完整性由 `SHA256SUMS.txt`（防传输损坏）+ Ed25519 manifest 签名（防伪造）承担。
-- 发布后可复核记录落 `docs/execution/RELEASE_VERIFICATION.md`（§10.5）。
+- 发布后可复核记录落 `docs/execution/RELEASE_VERIFICATION.md`（§10.5；该目录当前不存在，首次发布复核时创建）。
 
 ## 5. 回滚
 

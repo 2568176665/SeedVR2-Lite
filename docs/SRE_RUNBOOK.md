@@ -2,7 +2,7 @@
 
 > **来源**：家族泛化自 TTS_MultiModel `docs/SRE_RUNBOOK.md` + 本仓既有云原生部署，本仓本地化。
 > 配套：`docs/rollback_sop.md`、`docs/release-governance.md`。
-> 适用版本：v1.6.0（与 `pyproject.toml` / `version.py` 一致）。
+> 适用版本：v1.6.1（与 `pyproject.toml` / `app/integrated_app/version.py` 一致）。
 
 ---
 
@@ -85,6 +85,6 @@
 ## 治理与勘误速查
 
 - **钩子**：`.githooks/pre-commit` 分发器四级回退（仓库 `.venv` → PATH python → 控制台 `pre-commit` → `pre-commit-lite`），细节见 `.githooks/README.md`。
-- **分支**：`main` 受保护（`enforce_admins=true`；必查清单以 `gh api repos/<owner>/<repo>/branches/main/protection` 为准，**别照抄本文**——必查项会随门禁演进变动）→ 本地不可直推，变更走功能分支 + PR；pre-push gitleaks 扫描待推送提交（0 泄露才放行）。
+- **分支**：`main` 受保护但 admin 直推豁免（`enforce_admins=false`，2026-09-28 治理变更；必查清单以 `gh api repos/<owner>/<repo>/branches/main/protection` 为准，**别照抄本文**——必查项会随门禁演进变动）→ 本地 admin 凭据预检全绿后可直推，非 admin 账号变更走功能分支 + PR；pre-push gitleaks 扫描待推送提交（0 泄露才放行）。
 - **Python 安全注释**：bandit 豁免用纯 `# nosec`（`# nosec B603,B607` 只压 B607 不压 B603）；subprocess 一律列表参数。
 - **CodeQL 豁免**：**别指望行内注释**。`# codeql[py/path-injection] ignore` 紧贴告警行上一行、以及放在行尾，两种放法在 PR #98 上都实测无效（告警只是按新行号重锚）。要收口只有两条路：① 把消毒改成查询认得的形态（字符集白名单 + 使用 `fullmatch` 匹配值这条也没能拿下 `Path.resolve()`）；② 在告警面 `PATCH code-scanning/alerts/<n>` 以 `dismissed_reason="false positive"` 关闭并写理由。

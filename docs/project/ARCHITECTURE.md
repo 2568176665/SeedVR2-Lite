@@ -93,6 +93,7 @@ graph TB
     ModelRegistry -.->|观察者| EventBus
 
     SeedVR2Engine --> DiT
+    SeedVR2Engine --> DiT_v2
     SeedVR2Engine --> VideoVAE
     SeedVR2Engine --> BlockSwap
     SeedVR2Engine --> VRAMMonitor
@@ -312,7 +313,7 @@ stateDiagram-v2
 | 模块 | 来源 | 职责 |
 |------|------|------|
 | `model_lib/dit/` | ByteDance NaDiT (Apache-2.0) | MM-DiT 架构：多模态 Diffusion Transformer |
-| `model_lib/dit_v2/` | 衍生 | Window Attention + RoPE 位置编码 |
+| `model_lib/dit_v2/` | ByteDance SeedVR2 上游（Apache-2.0，3B 现役主推理路径） | Window Attention + RoPE 位置编码 |
 | `model_lib/video_vae_v3/` | SD3 Video VAE (Apache-2.0) | 视频变分自编码器：时间分块 + 内存优化 |
 
 > ⚠️ `model_lib/` 目录为上游研究代码镜像，**不可随意修改**。类型检查和覆盖率统计均已排除。
@@ -323,7 +324,7 @@ stateDiagram-v2
 |------|------|------|
 | 扩散组件 | `common/diffusion/` | 采样器、调度器、时间步 |
 | 分布式工具 | `common/distributed/` | 分布式训练辅助 |
-| 数据变换 | `data/` | 图像/视频预处理（resize、归一化、帧提取） |
+| 数据变换 | `video_processor.py` / `optimization/video/` | 图像/视频预处理（媒体几何探测、帧提取、resize、归一化） |
 
 ---
 
@@ -387,8 +388,8 @@ stateDiagram-v2
 | 模型架构 | MM-DiT + Video VAE (SD3) | - |
 | 代码质量 | Ruff + Black + Mypy + Pytest | - |
 | E2E 测试 | Playwright + TypeScript | - |
-| CI/CD | GitHub Actions (6 workflows) | - |
+| CI/CD | GitHub Actions（20 个 workflow） | - |
 
 ---
 
-*文档更新时间：2026-08-10*
+*文档更新时间：2026-10-21（workflow 数量、数据变换位置、DiT v2 链路按实际校正）*

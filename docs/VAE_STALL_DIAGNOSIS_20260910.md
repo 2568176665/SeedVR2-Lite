@@ -148,7 +148,7 @@ DIT_GB=6.31   alloc=6.79GB  free= 0.00GB   run0: 54.357s run1: 1.027s  run2: 0.2
 
 ### 2.4 卡死栈（faulthandler 抓取）
 
-`experiments/_diag_stack.py`，DiT 常驻 6.79 GB 时抓取：
+`experiments/_diag_stack.py`（诊断当日临时脚本，已随实验清理、现不在仓库），DiT 常驻 6.79 GB 时抓取：
 
 ```
 File "model_lib\video_vae_v3\modules\causal_inflation_lib.py", line 204 in _conv_forward

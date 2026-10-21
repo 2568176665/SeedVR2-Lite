@@ -7,10 +7,10 @@ description: "Harvest open-source repos from Bilibili video descriptions and com
 
 从哔哩哔哩视频的**简介**与**评论区**批量提取开源仓库地址，经 GitHub 元数据核验后，并入本仓「已学习仓库清单」。核心目标不是"搜得多"，而是**只产出真正未被学过的增量**。
 
-> 本地未分发引用：`docs/project/` —— 本文出现的该路径是**待写入清单所在的被忽略目录**
-> （按「干净交付」决策不随仓库分发，下文命令用于核对某清单文件是否已被显式例外收编），
-> 不是请读者打开的引用；克隆仓库后不存在属预期，需按文中 `!docs/project/<文件>.md`
-> 例外流程才会入库。
+> 本地未分发引用：`docs/project/` —— 本文出现的该路径是**待写入清单所在的目录**。该目录自 2026-10-20
+> （`47a918e`）起部分文件已随仓库分发（ARCHITECTURE / CONSTRAINTS / FIRST_TIME_USER_GUIDE /
+> MODULE_MAP / PROJECT_CONTEXT / model_algorithm_analysis），但采集清单类文件（如
+> `桌面宠物开源仓库清单.md`）**未被 git 跟踪**、不随仓库分发；写入前按 §9「入库前必查」确认跟踪状态。
 
 ## 何时调用
 
@@ -143,7 +143,7 @@ $rxRepo = [regex]'(?i)(?:https?://)?(?:www\.)?((?:github|gitee|gitlab)\.com|gitc
 
 ### 入库前必查：目标文档的 Git 跟踪状态
 
-清单类文档常落在被忽略的目录（本仓 `.gitignore` 有 `docs/project/*`，仅对少数文件用 `!` 开白名单）。写之前先确认：
+清单类文档可能未被 git 跟踪（`docs/project/` 自 2026-10-20 起部分文件已入库，其余仍未跟踪）。写之前先确认：
 
 ```bash
 git ls-files -- docs/project/<清单文件>.md   # 空 = 未被跟踪

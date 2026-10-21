@@ -1,6 +1,6 @@
 # SeedVR2-lite 安全整改追踪表
 
-> 配套 Image_MultiModel 家族安全深度评估（`SECURITY_ASSESSMENT_v2.0.0.md`，17 项发现）。
+> 配套 Image-DuoModel 家族安全深度评估（`SECURITY_ASSESSMENT_v2.0.0.md`，17 项发现）。
 > 本文记录 SeedVR2-lite 已落地的安全整改项与剩余项，便于跨仓统一对账。
 > 【对账注 2026-09-15】09-06 增量审计（docs/reports/SECURITY_AUDIT_SeedVR2-lite_2026-09-06.md，R1–R4；该报告属维护者本地文件，未随仓库分发）此前未纳入本表；经核对：R1 browse-dir/open-explorer 纳入 PathGuard 白名单、R2 水印 fail-open → 侧车元数据策略均已随 1.5.6 修复（见 .github/SECURITY.md 与 CHANGELOG 1.5.6）；R3 留存清理缺口、R4 SAST 名实不符两项待所有者核对后补录。
 
@@ -11,7 +11,7 @@
 `scripts/check_config_refs.py`（SeedVR2 适配版），作为 CI 质量门禁接入
 `.github/workflows/ci.yml` 的 `quality-gate` job。
 
-与 Image_MultiModel / TTS_MultiModel 的差异（适配点）：
+与 Image-DuoModel / TTS-MultiModel 的差异（适配点）：
 - SeedVR2 的配置以 **dict** 形式经 `load_config()` 注入 `app.state.config`，
   代码中通过 `config.get("runtime", {}).get("security", {}).get("key", default)` 消费，
   故门禁同时捕获属性链、`.get()` 字符串键与字典下标 `obj["key"]`。
@@ -81,9 +81,9 @@
 
 | 仓库 | 根因门禁 | 安全头中间件 | 提交状态 |
 |------|----------|--------------|----------|
-| Image_MultiModel | ✅ | ✅ | 已提交 |
-| TTS_MultiModel | ✅ | ✅ | 已提交（本地） |
+| Image-DuoModel | ✅ | ✅ | 已提交 |
+| TTS-MultiModel | ✅ | ✅ | 已提交（本地） |
 | SeedVR2-lite | ✅ | ✅ | 本次落地 |
-| MiniMax-H3-lite | 待适配（@dataclass 无 config.yaml） | 审计中 | 只读审计 |
+| MiniMax-H3-Lite | 待适配（@dataclass 无 config.yaml） | 审计中 | 只读审计 |
 | SpiritPal | 不适用（Rust） | 审计中 | 只读审计 |
 | DraftPeek | 不适用（Kotlin） | 审计中 | 只读审计 |

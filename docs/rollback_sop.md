@@ -15,7 +15,7 @@
 
 1. 成功率跌破 SLO 阈值；
 2. readiness `/api/system/ready` 持续 degraded（模型无法加载 / 显存熔断）；
-3. P0/P1 安全告警（完整性校验失败且 `block_startup_on_failure=true`）；
+3. P0/P1 安全告警（完整性校验失败且 `integrity_enforce=true`，发布构建期注入，见 `config.yaml` `runtime.security.integrity_enforce`）；
 4. 关键 API 契约断裂流入生产。
 
 ## 2. 回滚步骤
@@ -32,7 +32,7 @@ git revert <bad_release_commit>
 ## 3. 容器化 / 便携包回滚
 
 - **k8s**：`kubectl set image deployment/seedvr2 *.*=<image>:v<tag>` 或 `kubectl rollout undo`。
-- **便携包**：旧版 Release 资产不可变（`--clobber` 已去除），用户下载上一版本 + SHA256 校验 + GPG 验签。
+- **便携包**：旧版 Release 资产不可变（`--clobber` 已去除），用户下载上一版本 + SHA256 校验（GPG 分离签名已随 2026-10-18 PR #164 退出发布链路，见 `docs/release-governance.md` §4）。
 
 ## 4. 回滚后验证（闭环）
 

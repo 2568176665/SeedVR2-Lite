@@ -16,7 +16,7 @@
 | 组件 | 许可证 | 商用合规 | 合规要求 |
 |---|---|---|---|
 | `model_lib/dit/`（NaDiT） | Apache-2.0（Copyright 2025 ByteDance Ltd.） | 宽松许可（与主许可同源） | 保留原版权头；随包附 NOTICE |
-| `model_lib/dit_v2/` | 预留（未实现） | — | 实现后按上游条款补录 |
+| `model_lib/dit_v2/`（NaDiT v2，3B 现役主推理路径） | Apache-2.0（Copyright 2025 ByteDance Ltd.） | 宽松许可（与主许可同源） | 保留原版权头；随包附 NOTICE |
 | `model_lib/video_vae_v3/`（SD3 因果 Video VAE） | Apache-2.0（Copyright 2023 HuggingFace Team / 2025 ByteDance Ltd.） | 宽松许可 | 保留原版权头；随包附 NOTICE |
 | `model_lib/common/`（diffusion/distributed 等） | Apache-2.0（同上游） | 宽松许可 | 保留版权头 |
 

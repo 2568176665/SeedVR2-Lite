@@ -19,7 +19,7 @@ SeedVR2-lite 项目代码采用 [Apache License 2.0](LICENSE)。
 | aiohttp | Apache-2.0 | 异步 HTTP 客户端 |
 | numpy | BSD-3-Clause | 数值计算 |
 | Pillow | HPND（PIL Software License） | 图像处理 |
-| opencv-python-headless | Apache-2.0 | 视觉处理 |
+| opencv-python | Apache-2.0 | 视觉处理 |
 | safetensors | Apache-2.0 | 模型权重加载 |
 | einops | MIT | 张量重排 |
 | transformers | Apache-2.0 | 模型库 |

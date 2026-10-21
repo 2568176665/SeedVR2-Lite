@@ -46,8 +46,7 @@ grep -rn --include='*.py' -iE 'C:\\Users|/home/|/Users/' .
 
 ## 2. Git 工作流（强制）
 
-- main 受保护：禁止直推。流程：`git fetch` → 从 `origin/main` 建分支 → 修改 → `git commit -s`（DCO）→ push（过 pre-push 门禁）→ GitHub PR。
-- 提交信息使用 Conventional Commits 风格：`feat: / fix: / chore: / docs: / refactor: / test:`；同一仓库内语言保持一致。
+- main 受保护，但 admin（ReSerendipity）直推豁免（`enforce_admins=false`，2026-09-28 治理变更）：本地预检全绿后可直接 `git push origin main`；非 admin 账号 push main 会被 GitHub 拒绝，须走功能分支 + PR（1 审批 + required checks 全绿）。提交信息使用 Conventional Commits 风格：`feat: / fix: / chore: / docs: / refactor: / test:`；同一仓库内语言保持一致。
 - 钩子存放在 `.githooks/` 并随仓库分发（仓库自包含），克隆后启用：
 
   ```bash
@@ -73,8 +72,11 @@ grep -rn --include='*.py' -iE 'C:\\Users|/home/|/Users/' .
 ## 5. 禁区与门禁口径（公开子集）
 
 > **为什么有这一节**：本仓库的完整 AI 协作协议 `AGENTS.md` 及其子文档 `docs/agents/`、贡献指南
-> `CONTRIBUTING.md`、事故账本 `docs/project/`、修复交接日志 `FIX_LOG.md`、本地预检脚本
-> `precheck.ps1` 按「干净交付」决策只保留在维护者本机，**未随仓库分发**（见 `.gitignore`）。
+> `CONTRIBUTING.md`、修复交接日志 `FIX_LOG.md`、本地预检脚本 `precheck.ps1` 按「干净交付」决策
+> 只保留在维护者本机，**未随仓库分发**（见 `.gitignore`）。`docs/project/` 自 2026-10-20
+> （`47a918e` 解除 docs/ 忽略）起部分文件已随仓库分发（ARCHITECTURE / CONSTRAINTS /
+> FIRST_TIME_USER_GUIDE / MODULE_MAP / PROJECT_CONTEXT / model_algorithm_analysis），
+> 其余（KNOWN_ISSUES / PORTABLE_BUNDLES / AI_DEV_SOPS）仍未跟踪、不随仓库分发。
 > 本节把其中对外必须可执行的两块——**禁区声明**与**门禁口径**——摘成公开子集，使克隆后即可遵守，
 > 不依赖任何未分发文件；需要更细的规则请在 Issue / PR 中向维护者询问。
 > 冲突裁决顺序：代码与配置 > 本仓库追踪文件 > 本节摘录。
@@ -122,7 +124,7 @@ grep -rn --include='*.py' -iE 'C:\\Users|/home/|/Users/' .
 
 ## 7. 关联文档
 
-- `docs/DOD.md`（完成定义）；`docs/COMPLIANCE_CHECKLIST.md` 为维护者本地文件，未随仓库分发
+- `docs/DOD.md`（完成定义）；`docs/COMPLIANCE_CHECKLIST.md`（对外服务合规检查清单，已随仓库分发）
 - `docs/release-governance.md`（版本与发布）、`docs/ci/local_ref_baseline.json`（引用可用性基线）
 
 ---

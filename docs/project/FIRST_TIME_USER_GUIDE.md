@@ -8,15 +8,15 @@
 
 ### 方法 A：下载 ZIP（推荐给不懂 Git 的用户）
 
-1. 点击这个链接：**[Download ZIP](https://github.com/ReSerendipity/SeedVR2-lite/archive/refs/heads/main.zip)**
+1. 点击这个链接：**[Download ZIP](https://github.com/ReSerendipity/SeedVR2-Lite/archive/refs/heads/main.zip)**
 2. 等待下载完成（约 50-100MB，取决于网速）
 3. 找到下载的 ZIP 文件，**右键 → 解压到当前文件夹**
-4. 进入解压后的文件夹 `SeedVR2-lite-main`
+4. 进入解压后的文件夹 `SeedVR2-Lite-main`
 
 ### 方法 B：使用 Git（推荐有技术基础的用户）
 
 ```bash
-git clone https://github.com/ReSerendipity/SeedVR2-lite.git
+git clone https://github.com/ReSerendipity/SeedVR2-Lite.git
 cd SeedVR2-lite
 ```
 
@@ -31,8 +31,8 @@ cd SeedVR2-lite
 | 要求 | 说明 | 最低配置 | 推荐配置 |
 |---|---|---|---|
 | **操作系统** | Windows 10/11、Linux (Ubuntu 22.04+) | Windows 10 | Ubuntu 22.04+ |
-| **GPU** | NVIDIA CUDA GPU（**必须**） | RTX 3050 (4GB) + BlockSwap | RTX 3060 (12GB) 或以上 |
-| **显存** | BlockSwap 可降低需求（FP8/量化只减磁盘占用，不减显存） | 4GB (会很慢) | 8GB+ |
+| **GPU** | NVIDIA CUDA GPU（**必须**） | 独显 8GB+（3B FP8 最低档） | RTX 3060 (12GB) 或以上 |
+| **显存** | BlockSwap 可降低需求（FP8/量化只减磁盘占用，不减显存） | 8GB（3B FP8 最低档） | 12GB+ |
 | **Python** | **需要自行安装** Python 3.12+ | Python 3.12 | Python 3.12+ |
 | **磁盘空间** | 模型 + 依赖 + 缓存 | 20GB | 50GB SSD |
 | **内存** | BlockSwap 时需要足够内存 | 16GB | 32GB+ |
@@ -110,7 +110,7 @@ python scripts\download_model.py --size 3b
 1. 打开 [HuggingFace 模型仓库](https://huggingface.co/numz/SeedVR2_comfyUI/tree/main)
 2. 下载以下文件：
    - `seedvr2_ema_3b_fp16.safetensors` (约 6GB)
-   - `ema_vae_fp16.safetensors` (约 1GB)
+   - `ema_vae_fp16.safetensors` (约 0.5GB)
    - `pos_emb.pt` 和 `neg_emb.pt` (各约 100KB)
 3. 把所有文件放到 `model/` 文件夹（与项目根目录同级）
 
@@ -139,11 +139,11 @@ python scripts\download_model.py --size 3b
 | **ModuleNotFoundError** | 依赖未安装 | 重新运行 `install.bat` |
 | **Model file not found** | 模型未下载 | 执行第四步下载模型 |
 | **CUDA out of memory** | 显存不足 | 加大 `blocks_to_swap`（BlockSwap）或减小分辨率；换 FP8 权重**不减**显存 |
-| **端口被占用** | 7870 端口已使用 | 关闭其他程序或修改 `config.yaml` |
+| **端口被占用** | 7870 端口已使用 | 应用会自动寻找下一个可用端口，以启动日志打印的地址为准（也可改 `config.yaml` 的 `server.port`） |
 
 ### 获取帮助
 
-如果以上方法都无效，请提供以下信息到 [GitHub Issues](https://github.com/ReSerendipity/SeedVR2-lite/issues)：
+如果以上方法都无效，请提供以下信息到 [GitHub Issues](https://github.com/ReSerendipity/SeedVR2-Lite/issues)：
 
 1. **你的操作系统版本**（Win+Pause 查看）
 2. **显卡型号和显存大小**（NVIDIA 控制面板查看）
@@ -154,9 +154,9 @@ python scripts\download_model.py --size 3b
 
 ## 📚 进阶阅读
 
-- [完整文档站](https://reserendipity.github.io/SeedVR2-lite/docs/) - 详细的安装和使用指南
-- [模型选型指南](https://reserendipity.github.io/SeedVR2-lite/docs/guide/models.html) - 根据你的显卡选择合适模型
-- [常见问题 FAQ](https://reserendipity.github.io/SeedVR2-lite/docs/guide/faq.html) - 更多问题的解答
+- [完整文档站](https://reserendipity.github.io/SeedVR2-Lite/docs/) - 详细的安装和使用指南
+- [模型选型指南](https://reserendipity.github.io/SeedVR2-Lite/docs/guide/models.html) - 根据你的显卡选择合适模型
+- [常见问题 FAQ](https://reserendipity.github.io/SeedVR2-Lite/docs/guide/faq.html) - 更多问题的解答
 
 ---
 
@@ -166,39 +166,40 @@ python scripts\download_model.py --size 3b
 
 ```bash
 # 1. 克隆或下载项目
-git clone https://github.com/ReSerendipity/SeedVR2-lite.git
-cd SeedVR2-lite
+git clone https://github.com/ReSerendipity/SeedVR2-Lite.git
+cd SeedVR2-Lite
 
-# 2. 安装依赖
-chmod +x install.sh
-./install.sh
+# 2. 安装依赖（本仓无 Linux/macOS 一键脚本，走 venv 手动安装）
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+pip install -r requirements.txt
 
 # 3. 下载模型
 python scripts/download_model.py --size 3b
 
 # 4. 启动
-./start.sh
+python app/clean_launch.py
 ```
 
-> ⚠️ 注意：Linux/macOS 可能需要额外配置 CUDA 环境，详见 [官方文档](https://reserendipity.github.io/SeedVR2-lite/docs/guide/install.html)
+> ⚠️ 注意：Linux/macOS 可能需要额外配置 CUDA 环境，详见 [官方文档](https://reserendipity.github.io/SeedVR2-Lite/docs/guide/install.html)
 
 ---
 
 
 ## 🔧 低配显卡用户必读
 
-如果你的显存 < 8GB，请按以下步骤优化：
+如果你的显存接近 8GB（3B FP8 最低档）或显存紧张，请按以下步骤优化：
 
 ### 方案 1：开启 BlockSwap（真正省显存的手段）
 
-在 `config.yaml` 中修改：
+在 `config.yaml` 中修改（BlockSwap 的启用条件是 `blocks_to_swap > 0` 或 `swap_io_components: true`，没有独立的 `blockswap_enabled` 开关）：
 ```yaml
 inference:
-  blockswap_enabled: true      # 开启 BlockSwap
   blocks_to_swap: 16           # 交换块数（越多越省显存，但越慢）
 ```
 
-- 4GB 显存也能运行（但速度会慢 3-5 倍）
+- 8GB 显存是 3B FP8 的最低档（权重驻留 + 激活的下界，BlockSwap 无法再往下压）
 - 需要至少 16GB 系统内存
 
 ### 方案 2：降低分辨率
@@ -211,7 +212,7 @@ inference:
 
 ```batch
 # 下载 FP8 量化版本（文件体积更小、下载更快）
-python scripts\download_model.py --size 3b --precision fp8
+python scripts\download_model.py --size 3b --precisions fp8
 ```
 
 - ⚠ `fp8` 与 `mxfp8 / int8_convrot / nvfp4` 都在**加载期反量化**，权重进 GPU 后仍以
@@ -227,10 +228,10 @@ python scripts\download_model.py --size 3b --precision fp8
 
 | 配置 | 最低显存 | 系统内存要求 | 相对速度 | 适用场景 |
 |---|---|---|---|---|
-| 3B (无 BlockSwap) | 8-16GB | 16GB+ | ⚡⚡⚡ 基准 | RTX 3060 (12GB) 或以上 |
-| 3B + BlockSwap (16 块) | 6GB | 16GB+ | ⚡⚡ 慢 20-30% | RTX 3050 (8GB) |
-| 3B + BlockSwap (32 块) | 4GB | 16GB+ | ⚡ 慢 50-70% | GTX 1660 Super (6GB) |
-| 7B + BlockSwap (32 块) | 8GB | 32GB+ | ⚡ 慢 60-80% | RTX 3070 (8GB) |
+| 3B FP8（无 BlockSwap） | 8GB | 16GB+ | ⚡⚡⚡ 基准 | RTX 3060 (12GB) 或以上 |
+| 3B FP8 + BlockSwap (16 块) | 8GB | 16GB+ | ⚡⚡ 慢 20-30% | RTX 3060 8GB / RTX 3050 8GB |
+| 3B FP8 + BlockSwap (32 块) | 8GB | 16GB+ | ⚡ 慢 50-70% | 8GB 卡（权重驻留下界不随换块数下降） |
+| 7B FP8 + BlockSwap (32 块) | 12GB | 32GB+ | ⚡ 慢 60-80% | RTX 3070 8GB 不够用，需 12GB+ |
 
 **速度影响因素排序**（从大到小）：
 1. **BlockSwap 开启**：降低 20-70%（取决于交换块数）
@@ -241,7 +242,7 @@ python scripts\download_model.py --size 3b --precision fp8
 > 💡 **实用建议**：
 > - **显存充足 (≥12GB)**：关闭 BlockSwap，用 3B-FP16，速度最快
 > - **显存中等 (8-10GB)**：开启 BlockSwap (16 块)，平衡速度与可用性
-> - **显存紧张 (4-6GB)**：开启 BlockSwap (32 块) + 降低分辨率，能跑起来最重要
+> - **显存紧张 (≈8GB)**：开启 BlockSwap (32 块) + 降低分辨率，能跑起来最重要
 ## ✅ 验证安装成功
 
 运行以下命令检查所有组件是否正常：
