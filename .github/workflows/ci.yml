@@ -99,7 +99,7 @@ jobs:
           # runner 镜像自带 pipx（要求 filelock>=4.2），与锁内 filelock 4.0.12 冲突；
           # pipx 不是本项目依赖，只忽略以 pipx 开头的冲突，其余仍阻断。
           pip check > pip-check.txt || true
-          if grep -vE '^pipx ' pip-check.txt | grep -q .; then
+          if grep -vE '^(pipx |No broken requirements found\.$)' pip-check.txt | grep -q .; then
             cat pip-check.txt
             exit 1
           fi
@@ -206,7 +206,7 @@ jobs:
   # （原步骤见 git 历史；迁移记录 docs/reports/mypy-ratchet-组织级门禁迁移_20260903.md 为维护者本地文件，未随仓库分发）
   typecheck:
     name: Typecheck (mypy ratchet)
-    uses: ReSerendipity/.github/.github/workflows/python-quality-baseline.yml@7c03273a862ffc8136ec886914c6105d77dce32d # pinned 2026-10-22
+    uses: ReSerendipity/.github/.github/workflows/python-quality-baseline.yml@051227229483b9efe65f57a6a81ddcd10cf950fc # pinned 2026-10-22
     with:
       package: app/integrated_app
       include_tests: false
