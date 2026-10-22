@@ -99,7 +99,7 @@ jobs:
           # runner 镜像自带 pipx（要求 filelock>=4.2），与锁内 filelock 4.0.12 冲突；
           # pipx 不是本项目依赖，只忽略以 pipx 开头的冲突，其余仍阻断。
           pip check > pip-check.txt || true
-          if grep -vE '^pipx ' pip-check.txt | grep -q .; then
+          if grep -vE '^(pipx |No broken requirements found\.$)' pip-check.txt | grep -q .; then
             cat pip-check.txt
             exit 1
           fi
