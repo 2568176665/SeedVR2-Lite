@@ -66,6 +66,8 @@ root_allowlist:
   - .gitignore
   - .mailmap
   - .pre-commit-config.yaml
+  - .trellis
+  - .agents
   - CHANGELOG.md
   - CONTRIBUTING.md  # 允许出现在根目录：仓库内副本属维护者本地，未随仓库分发（以组织级 CONTRIBUTING.md 为准）
   - Dockerfile

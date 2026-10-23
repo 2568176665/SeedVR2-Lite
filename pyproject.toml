@@ -113,6 +113,10 @@ torchvision = { index = "pytorch-cu132" }
 [tool.ruff]
 target-version = "py312"
 line-length = 120
+# .trellis/scripts 由 `trellis init` / `trellis update` 生成的模板代码，随升级重新生成，
+# 不属于本仓库维护面；force-exclude 让显式传路径（pre-commit 的 pass_filenames）也生效。
+extend-exclude = [".trellis/scripts"]
+force-exclude = true
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM"]
@@ -147,6 +151,12 @@ known-first-party = ["app"]
 [tool.black]
 line-length = 120
 target-version = ["py312"]
+# 与 ruff 同口径：Trellis 模板生成的脚本不纳入本仓格式化门禁。
+extend-exclude = '''
+/(
+    \.trellis/scripts
+)
+'''
 
 [tool.mypy]
 python_version = "3.12"

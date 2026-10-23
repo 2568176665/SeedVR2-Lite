@@ -351,3 +351,13 @@ service-account.json
 # --- 2026-10-20 合规审查补缺（repo-audit-20261020）---
 .workbuddy/
 app/integrated_app/data/checkpoints/
+
+# .agents/ 随仓库分发：其 skills/*/references/ 是 SKILL.md 的正文依赖。
+# 上面的 `references/` 忽略规则是为参考仓库目录写的，此处按目录层级精确豁免。
+!.agents/skills/*/references/
+# 同理豁免 references 下的 agents.md 等文档：文件级 *.md 忽略规则在此不适用。
+!.agents/skills/*/references/**
+
+# --- Trellis：.pi 为 AI 工具本地运行时（agents/prompts/extension/settings），
+# 每台机器由 pi 自行生成，不随仓库分发。.trellis/ 与 .agents/ 随仓库分发。---
+/.pi/

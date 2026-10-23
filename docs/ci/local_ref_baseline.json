@@ -4,6 +4,15 @@
   "entries": [
     { "file": "CHANGELOG.md", "ref": "docs/repo-analysis", "reason": "CHANGELOG:140 历史条目叙事（机器路径豁免留痕，2026-09），保留" },
     { "file": "CHANGELOG.md", "ref": "docs/repo-analysis/ComfyUI-Mie-Package-Launcher_技术学习报告.md", "reason": "CHANGELOG:140 历史条目叙事（机器路径豁免留痕，2026-09），保留" },
-    { "file": "docs/DATA_GOVERNANCE_ASSESSMENT.md", "ref": "app/integrated_app/data", "reason": "评估报告文档叙事，描述目录结构事实，保留" }
+    { "file": "docs/DATA_GOVERNANCE_ASSESSMENT.md", "ref": "app/integrated_app/data", "reason": "评估报告文档叙事，描述目录结构事实，保留" },
+    { "file": ".agents/skills/trellis-meta/references/customize-local/change-agents.md", "ref": ".pi/agents", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".agents/skills/trellis-meta/references/platform-files/agents.md", "ref": ".pi/agents", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".agents/skills/trellis-meta/references/platform-files/hooks-and-settings.md", "ref": ".pi/extensions/trellis", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".agents/skills/trellis-meta/references/platform-files/overview.md", "ref": ".pi/extensions", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".agents/skills/trellis-meta/references/platform-files/platform-map.md", "ref": ".pi/agents", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".agents/skills/trellis-meta/references/platform-files/platform-map.md", "ref": ".pi/extensions/trellis", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".agents/skills/trellis-meta/references/platform-files/platform-map.md", "ref": ".pi/extensions/trellis/index.ts", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".trellis/scripts/common/cli_adapter.py", "ref": ".pi/prompts", "reason": "Trellis 生成的平台说明文档描述 Pi 平台路径约定（.pi/ 为本机 AI 运行时，不随仓库分发），属平台对照表而非读者指路，保留" },
+    { "file": ".trellis/tasks/00-bootstrap-guidelines/prd.md", "ref": "AGENTS.md", "reason": "Trellis 引导任务中列举「项目既有约定文件」的检索表，AGENTS.md 属未分发本地文件，保留" }
   ]
 }

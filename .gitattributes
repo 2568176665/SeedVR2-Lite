@@ -52,3 +52,17 @@
 # 无扩展名构建/清单文件固定 LF
 Dockerfile text eol=lf
 Makefile text eol=lf
+
+# Trellis 版本/身份标记文件无扩展名，session_context.py 按文本读取 `.version`，
+# 必须锁 LF（否则 Windows 工作区会被转成 CRLF，strip() 虽然兼容，但内容哈希会漂）。
+/.trellis/.version text eol=lf
+
+# Trellis: append-only developer journals should merge cleanly across
+# parallel sessions/worktrees — each session only appends a new block, so
+# there is nothing to actually conflict on.
+#
+# Do NOT add a rule for workspace/*/index.md here — it is fully regenerated
+# every session, so a real conflict there is expected and safe to resolve by
+# picking either side (task state lives in task.json, not index.md). See
+# .trellis/spec/backend/directory-structure.md for details.
+.trellis/workspace/*/journal-*.md merge=union
