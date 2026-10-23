@@ -351,4 +351,3 @@ service-account.json
 # --- 2026-10-20 合规审查补缺（repo-audit-20261020）---
 .workbuddy/
 app/integrated_app/data/checkpoints/
-!/AGENTS.md
