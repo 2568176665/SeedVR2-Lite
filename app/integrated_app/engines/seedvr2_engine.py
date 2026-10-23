@@ -189,7 +189,7 @@ def _describe_integrity_failure(pretrained_root: Path, model_cfg: dict, failed: 
         parts.append(
             "权重文件不存在（尚未下载，或文件名与 config.yaml 登记的等价命名都不匹配）: "
             + "; ".join(missing)
-            + "。请先运行 scripts/download_model.py 下载该精度，或改用已在盘的精度"
+            + "。请先在系统状态页的「模型权重下载」中下载，或运行 scripts/download_model.py，或改用已在盘的精度"
         )
     if tampered:
         parts.append("SHA256 与 config.yaml 不符，文件可能已被篡改或投毒 (CWE-353): " + ", ".join(tampered))

@@ -9937,3 +9937,87 @@ a,
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
+/* ④ 系统状态页：模型权重下载面板（补充权重缺失时的补救入口）。
+      与 VRAM 工具面板同属「有输入有动作」的整宽面板，沿用同一套横向排布语言。 */
+.sv-download-panel {
+    margin-top: var(--sv-space-5);
+}
+.sv-download-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sv-space-4) var(--sv-space-6);
+}
+.sv-download-form > .sv-stat-item {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 0;
+    border-bottom: none;
+}
+.sv-download-form .sv-form-control {
+    min-width: 152px;
+}
+.sv-download-note {
+    margin: var(--sv-space-3) 0 0;
+    font-size: var(--sv-text-xs);
+    color: var(--sv-text-muted);
+}
+.sv-download-progress {
+    margin-top: var(--sv-space-4);
+}
+.sv-download-progress-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--sv-space-3);
+    font-size: var(--sv-text-sm);
+    color: var(--sv-text-secondary);
+}
+.sv-download-progress-head span:first-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.sv-download-panel #downloadResult {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sv-space-2);
+}
+@media (max-width: 768px) {
+    .sv-download-form > .sv-stat-item,
+    .sv-download-form > .sv-btn {
+        flex: 1 1 100%;
+    }
+    .sv-download-form .sv-form-control {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+/* 模型下载进度：加大进度条与速度/剩余时间元信息。
+   进度条复用 .sv-gauge-bar，仅在其上加 --lg 修饰，不新建一套条状组件。 */
+.sv-gauge-bar--lg {
+    height: 10px;
+    border-radius: 5px;
+    margin-top: var(--sv-space-2);
+}
+.sv-gauge-bar--lg .gauge-fill {
+    border-radius: 5px;
+}
+.sv-download-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sv-space-3);
+    margin-top: var(--sv-space-2);
+    font-size: var(--sv-text-xs);
+    color: var(--sv-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+.sv-download-form > .sv-btn {
+    flex: 0 0 auto;
+}

@@ -6,6 +6,7 @@
 - readiness.py: 容器编排就绪探针（模型预热中返回 503）
 - gpu.py: GPU 信息查询端点
 - settings.py: 系统设置管理与模型操作端点
+- model_download.py: 模型权重下载（选模型/精度/下载源，支持镜像源）
 - history.py: 历史记录查询与管理端点
 - sse.py: 全局 SSE 事件总线端点
 

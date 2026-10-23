@@ -330,7 +330,7 @@ def vram_preflight_gate(
         raise InsufficientVramError(
             f"当前可用显存 {budget_gb:.1f}GB 不足以完成本次任务：即使降到低显存精度并把 BlockSwap 开到最大"
             f"仍需约 {degraded_fit:.1f}GB。建议：① 降低分辨率或减少帧数；② 开启 BlockSwap（速度换显存）；"
-            f"③ 改用更小的模型，或用 scripts/download_model.py 下载更省显存的精度权重。",
+            f"③ 改用更小的模型，或在系统状态页的「模型权重下载」中下载更省显存的精度权重。",
             detail={
                 "estimated_vram_gb": estimated,
                 "degraded_vram_gb": round(degraded_fit, 2),

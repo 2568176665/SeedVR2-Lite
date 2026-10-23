@@ -412,8 +412,8 @@ class ModelManager:
             if not digest or digest.lower() not in expected_hashes:
                 raise ValueError(
                     f"权重文件 SHA256 校验失败: {os.path.basename(path)}（{label}）。"
-                    f"文件可能损坏或被替换，请重新下载（python scripts/download_model.py）"
-                    f"或删除 {path} 后重试。"
+                    f"文件可能损坏或被替换，请在系统状态页的「模型权重下载」中重新下载"
+                    f"（或运行 python scripts/download_model.py）或删除 {path} 后重试。"
                 )
             logger.info(f"权重校验通过: {os.path.basename(path)}（{label}）")
 

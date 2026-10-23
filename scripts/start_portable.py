@@ -28,11 +28,27 @@ if PROJECT_ROOT not in sys.path:
 # 在用户机器上加载错解释器标准库或第三方包（壳只设了 PYTHONNOUSERSITE）。
 for _var in ("PYTHONHOME", "PYTHONSTARTUP"):
     os.environ.pop(_var, None)
-sys.path = [
-    p
-    for p in sys.path
-    if not any(exclude in p.lower() for exclude in ("\\appdata\\", "\\program files\\", "\\programdata\\"))
-]
+
+# 不能按 "\\appdata\\" 之类的字符串黑名单剔除 sys.path 条目：
+# uv 管理的基础解释器也可能装在用户目录（如 %APPDATA%\uv\python\cpython-3.12-...），
+# 其标准库 Lib 正在黑名单路径下，一旦被剔除会导致 locale / encodings 等
+# 标准库模块无法导入（现象是 argparse 构造时抛 ModuleNotFoundError: locale）。
+# 改为按“当前解释器根目录 + 项目根目录”白名单保留。
+_ALLOWED_PREFIXES = tuple(
+    os.path.normcase(os.path.abspath(_p))
+    for _p in {sys.base_prefix, sys.base_exec_prefix, sys.prefix, sys.exec_prefix, PROJECT_ROOT}
+)
+
+
+def _is_allowed_path(path):
+    # 空字符串表示当前工作目录，必须保留
+    if not path:
+        return True
+    _norm = os.path.normcase(os.path.abspath(path))
+    return any(_norm == _root or _norm.startswith(_root + os.sep) for _root in _ALLOWED_PREFIXES)
+
+
+sys.path = [p for p in sys.path if _is_allowed_path(p)]
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 

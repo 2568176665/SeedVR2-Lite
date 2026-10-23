@@ -238,6 +238,56 @@
             </div>
         </div>
     </div>
+
+    <!-- 模型权重下载：本地缺权重时的补救入口（此前只能手工往 model/ 目录放文件） -->
+    <div class="sv-card sv-download-panel">
+        <div class="sv-card-header">
+            <h3><i class="bi bi-cloud-arrow-down sv-text-primary" aria-hidden="true"></i> {{ t('system.download_title') }}</h3>
+            <span class="sv-badge sv-badge-secondary" id="downloadBadge">--</span>
+        </div>
+        <div class="sv-card-body">
+            <div class="sv-download-form">
+                <div class="sv-stat-item">
+                    <span class="stat-label">{{ t('system.download_model') }}</span>
+                    <select id="downloadModelSelect" class="sv-form-control sv-form-control-sm"></select>
+                </div>
+                <div class="sv-stat-item">
+                    <span class="stat-label">{{ t('system.download_precision') }}</span>
+                    <select id="downloadPrecisionSelect" class="sv-form-control sv-form-control-sm"></select>
+                </div>
+                <div class="sv-stat-item">
+                    <span class="stat-label">{{ t('system.download_source') }}</span>
+                    <select id="downloadSourceSelect" class="sv-form-control sv-form-control-sm"></select>
+                </div>
+                <button type="button" class="sv-btn sv-btn-primary sv-btn-sm" id="btnDownloadModel">
+                    <i class="bi bi-download" aria-hidden="true"></i> <span id="downloadBtnText">{{ t('system.download_start') }}</span>
+                </button>
+                <button type="button" class="sv-btn sv-btn-outline sv-btn-sm" id="btnCancelDownload" style="display:none;">
+                    <i class="bi bi-x-circle" aria-hidden="true"></i> <span>{{ t('system.download_cancel') }}</span>
+                </button>
+            </div>
+
+            <p class="sv-download-note">{{ t('system.download_source_note') }}</p>
+
+            <div class="sv-download-progress" id="downloadProgress" style="display:none;">
+                <div class="sv-download-progress-head">
+                    <span id="downloadProgressText">--</span>
+                    <span id="downloadProgressPercent">0%</span>
+                </div>
+                <div class="sv-gauge-bar sv-gauge-bar--lg">
+                    <div class="gauge-fill sv-bg-primary" id="downloadProgressBar" style="width:0%;"></div>
+                </div>
+                <div class="sv-download-progress-meta">
+                    <span id="downloadProgressBytes">--</span>
+                    <span id="downloadProgressSpeed"></span>
+                </div>
+            </div>
+
+            <div id="downloadResult" class="sv-alert sv-mt-3" style="display:none;" role="status">
+                <i class="bi bi-info-circle" aria-hidden="true"></i> <span id="downloadResultText"></span>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}
@@ -430,9 +480,260 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // ==================== 模型权重下载 ====================
+    const dlModelSel = document.getElementById('downloadModelSelect');
+    const dlPrecSel = document.getElementById('downloadPrecisionSelect');
+    const dlSourceSel = document.getElementById('downloadSourceSelect');
+    const dlBtn = document.getElementById('btnDownloadModel');
+    const dlBtnText = document.getElementById('downloadBtnText');
+    const dlCancelBtn = document.getElementById('btnCancelDownload');
+    const dlResult = document.getElementById('downloadResult');
+    const dlResultText = document.getElementById('downloadResultText');
+    const dlProgress = document.getElementById('downloadProgress');
+    let downloadOptions = null;
+    let downloadPollTimer = null;
+    let downloadEta = { lastBytes: 0, lastTs: 0, speed: 0 };
+
+    function setSelectOptions(selectEl, items) {
+        selectEl.replaceChildren();
+        items.forEach(({ value, label }) => {
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = label;
+            selectEl.appendChild(opt);
+        });
+    }
+
+    function showDownloadResult(kind, text) {
+        dlResult.style.display = '';
+        dlResult.className = 'sv-alert sv-mt-3 ' + kind;
+        dlResultText.textContent = text;
+    }
+
+    function fillPrecisionOptions() {
+        if (!downloadOptions) return;
+        const model = downloadOptions.models.find(m => m.id === dlModelSel.value);
+        const list = model ? model.precisions : [];
+        const presentLabel = I['system.download_present'] || '已下载';
+        setSelectOptions(dlPrecSel, list.map(p => ({
+            value: p.id,
+            label: p.present ? `${p.id.toUpperCase()} (${presentLabel})` : p.id.toUpperCase(),
+        })));
+    }
+
+    function formatBytes(n) {
+        const v = Number(n) || 0;
+        if (v >= 1073741824) return `${(v / 1073741824).toFixed(2)} GB`;
+        if (v >= 1048576) return `${(v / 1048576).toFixed(1)} MB`;
+        if (v >= 1024) return `${(v / 1024).toFixed(0)} KB`;
+        return `${v} B`;
+    }
+
+    /** 用两次采样的字节增量估算速度与剩余时间。 */
+    function updateSpeed(st, now) {
+        const bytes = Number(st.downloaded_bytes) || 0;
+        if (downloadEta.lastTs > 0 && now > downloadEta.lastTs) {
+            const dt = (now - downloadEta.lastTs) / 1000;
+            const delta = bytes - downloadEta.lastBytes;
+            if (dt > 0.2 && delta >= 0) {
+                const inst = delta / dt;
+                // 指数平滑，避免进度数字每秒跳成大数
+                downloadEta.speed = downloadEta.speed > 0 ? downloadEta.speed * 0.7 + inst * 0.3 : inst;
+            }
+        }
+        downloadEta.lastBytes = bytes;
+        downloadEta.lastTs = now;
+
+        const total = Number(st.total_bytes) || 0;
+        const speedEl = document.getElementById('downloadProgressSpeed');
+        if (!speedEl) return;
+        if (downloadEta.speed <= 0) {
+            speedEl.textContent = '';
+            return;
+        }
+        const parts = [`${formatBytes(downloadEta.speed)}/s`];
+        if (total > 0 && bytes < total) {
+            const remain = (total - bytes) / downloadEta.speed;
+            if (Number.isFinite(remain) && remain > 0) parts.push(`${formatUptimeShort(remain)} ${I['system.download_remaining'] || '剩余'}`);
+        }
+        speedEl.textContent = parts.join(' · ');
+    }
+
+    function formatUptimeShort(sec) {
+        const s = Math.round(sec);
+        if (s >= 3600) return `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2, '0')}m`;
+        if (s >= 60) return `${Math.floor(s / 60)}m${String(s % 60).padStart(2, '0')}s`;
+        return `${s}s`;
+    }
+
+    function renderDownloadStatus(st) {
+        const state = st.state || 'idle';
+        const running = state === 'running';
+        dlBtn.disabled = running;
+        dlBtn.style.display = running ? 'none' : '';
+        dlCancelBtn.style.display = running ? '' : 'none';
+        dlBtnText.textContent = running
+            ? (I['system.download_in_progress'] || '下载中...')
+            : (I['system.download_start'] || '下载');
+
+        if (state === 'idle') {
+            document.getElementById('downloadBadge').textContent = '--';
+            return;
+        }
+
+        const pct = Number(st.percent) || 0;
+        document.getElementById('downloadBadge').textContent = `${pct.toFixed(1)}%`;
+        if (running) {
+            dlProgress.style.display = '';
+            document.getElementById('downloadProgressBar').style.width = `${pct}%`;
+            document.getElementById('downloadProgressPercent').textContent = `${pct.toFixed(1)}%`;
+            const cur = st.current_file ? ` ${st.current_file}` : '';
+            document.getElementById('downloadProgressText').textContent =
+                `${st.message || I['system.download_in_progress'] || '下载中...'}${cur}`;
+
+            const bytesEl = document.getElementById('downloadProgressBytes');
+            const total = Number(st.total_bytes) || 0;
+            bytesEl.textContent = total > 0
+                ? `${formatBytes(st.downloaded_bytes)} / ${formatBytes(total)}`
+                : formatBytes(st.downloaded_bytes);
+            updateSpeed(st, Date.now());
+        } else {
+            dlProgress.style.display = 'none';
+        }
+
+        if (state === 'done') {
+            showDownloadResult('sv-alert-success', I['system.download_done'] || '下载完成，现在可以加载模型了。');
+            if (SeedVR2.toast) SeedVR2.toast(I['system.download_done'] || '下载完成', 'success');
+            loadStatus();
+        } else if (state === 'cancelled') {
+            showDownloadResult('sv-alert-warning', I['system.download_cancelled'] || '下载已取消，已下载部分会保留，再次下载时续传。');
+        } else if (state === 'error') {
+            showDownloadResult('sv-alert-danger', `${I['system.download_failed'] || '下载失败'}: ${st.error || ''}`);
+        }
+    }
+
+    /** 轮询兼底（SSE 不可用时仍能推进进度）。 */
+    function startDownloadPolling() {
+        if (downloadPollTimer) clearInterval(downloadPollTimer);
+        downloadPollTimer = setInterval(async () => {
+            try {
+                const resp = await SeedVR2.api.get('/api/system/model/download/status');
+                const st = resp.data || {};
+                renderDownloadStatus(st);
+                if (st.state !== 'running') stopDownloadPolling();
+            } catch (e) {
+                console.error('Download status poll failed:', e);
+            }
+        }, 2000);
+    }
+
+    function stopDownloadPolling() {
+        if (downloadPollTimer) {
+            clearInterval(downloadPollTimer);
+            downloadPollTimer = null;
+        }
+    }
+
+    async function initDownloadForm() {
+        try {
+            const resp = await SeedVR2.api.get('/api/system/model/download/options');
+            downloadOptions = resp.data;
+
+            setSelectOptions(dlModelSel, downloadOptions.models.map(m => ({ value: m.id, label: m.name })));
+            fillPrecisionOptions();
+
+            setSelectOptions(dlSourceSel, downloadOptions.sources.map(s => ({
+                value: s.id,
+                label: s.id === 'huggingface' ? 'HuggingFace' : `${s.id}`,
+            })));
+
+            const st = await SeedVR2.api.get('/api/system/model/download/status');
+            renderDownloadStatus(st.data || {});
+            if ((st.data || {}).state === 'running') startDownloadPolling();
+        } catch (e) {
+            console.error('Init download form failed:', e);
+        }
+    }
+
+    /**
+     * 订阅 SSE 的 model_download 事件，把进度条从 2s/次轮询升级为实时推进。
+     *
+     * 时序：app.js 的 initGlobalSSE() 在 DOMContentLoaded 里才建连接，
+     * 本页脚本也在 DOMContentLoaded 里跑，两者回调先后由注册顺序决定，
+     * 不能假定连接已就绪。故这里短轮询重试，期间靠轮询兼底。
+     * 全局事件源由 app.js 拥有生命周期，此处只挂监听。
+     *
+     * @returns {boolean} 是否已成功挂上监听。
+     */
+    let downloadSseRetries = 0;
+    let downloadSseBound = false;
+    function subscribeDownloadProgress() {
+        if (downloadSseBound) return true;
+        const sse = window.__sseConnection;
+        if (!sse || typeof sse.addEventListener !== 'function') {
+            if (downloadSseRetries++ < 60) {
+                setTimeout(subscribeDownloadProgress, 250);
+            }
+            return false;
+        }
+        sse.addEventListener('model_download', (event) => {
+            try {
+                const st = JSON.parse(event.data);
+                renderDownloadStatus(st);
+                // SSE 已到终态则停掉兼底轮询
+                if (st.state && st.state !== 'running') stopDownloadPolling();
+            } catch (err) {
+                console.debug('model_download parse error:', err);
+            }
+        });
+        downloadSseBound = true;
+        return true;
+    }
+
+    dlModelSel?.addEventListener('change', fillPrecisionOptions);
+
+    dlBtn?.addEventListener('click', async () => {
+        dlResult.style.display = 'none';
+        dlBtn.disabled = true;
+        dlBtnText.textContent = I['system.download_starting'] || '启动中...';
+        downloadEta = { lastBytes: 0, lastTs: 0, speed: 0 };
+        try {
+            const resp = await SeedVR2.api.post('/api/system/model/download', {
+                size: dlModelSel.value,
+                precision: dlPrecSel.value,
+                source: dlSourceSel.value,
+            });
+            renderDownloadStatus(resp.data || {});
+            startDownloadPolling();
+        } catch (e) {
+            dlBtn.disabled = false;
+            dlBtnText.textContent = I['system.download_start'] || '下载';
+            showDownloadResult('sv-alert-danger', `${I['system.download_failed'] || '下载失败'}: ${e.message || e}`);
+        }
+    });
+
+    dlCancelBtn?.addEventListener('click', async () => {
+        dlCancelBtn.disabled = true;
+        try {
+            await SeedVR2.api.post('/api/system/model/download/cancel', {});
+            // 立即回显“正在取消”，最终状态由 SSE/轮询推进
+            document.getElementById('downloadProgressText').textContent =
+                I['system.download_cancelling'] || '正在取消...';
+        } catch (e) {
+            showDownloadResult('sv-alert-danger', `${I['system.download_cancel_failed'] || '取消失败'}: ${e.message || e}`);
+        } finally {
+            dlCancelBtn.disabled = false;
+        }
+    });
+
+    initDownloadForm();
+    // SSE 连接由 app.js 异步建立，可能在本次脚本执行后才就绪（见 subscribeDownloadProgress 注释），
+    // 故先轮询兼底，再自动重试接管实时通道。
+    subscribeDownloadProgress();
+    window.addEventListener('beforeunload', stopDownloadPolling);
+
     // 初始加载
     loadStatus();
-
     // 自动刷新时旋转图标
     const refreshIcon = document.getElementById('refreshIcon');
     if (refreshIcon) {
